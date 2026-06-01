@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ZplConverterRouteImport } from './routes/zpl-converter'
 import { Route as MarketplaceSlugRouteImport } from './routes/marketplace.$slug'
 import { Route as MarketplaceSlugIndexRouteImport } from './routes/marketplace.$slug.index'
 import { Route as MarketplaceSlugProcessarRouteImport } from './routes/marketplace.$slug.processar'
@@ -25,6 +26,11 @@ const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ZplConverterRoute = ZplConverterRouteImport.update({
+  id: '/zpl-converter',
+  path: '/zpl-converter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketplaceSlugRoute = MarketplaceSlugRouteImport.update({
@@ -59,6 +65,7 @@ const MarketplaceSlugHistoricoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/zpl-converter': typeof ZplConverterRoute
   '/marketplace/$slug': typeof MarketplaceSlugRouteWithChildren
   '/marketplace/$slug/historico': typeof MarketplaceSlugHistoricoRoute
   '/marketplace/$slug/pendencias': typeof MarketplaceSlugPendenciasRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/zpl-converter': typeof ZplConverterRoute
   '/marketplace/$slug/historico': typeof MarketplaceSlugHistoricoRoute
   '/marketplace/$slug/pendencias': typeof MarketplaceSlugPendenciasRoute
   '/marketplace/$slug/processar': typeof MarketplaceSlugProcessarRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/zpl-converter': typeof ZplConverterRoute
   '/marketplace/$slug': typeof MarketplaceSlugRouteWithChildren
   '/marketplace/$slug/historico': typeof MarketplaceSlugHistoricoRoute
   '/marketplace/$slug/pendencias': typeof MarketplaceSlugPendenciasRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/configuracoes'
+    | '/zpl-converter'
     | '/marketplace/$slug'
     | '/marketplace/$slug/historico'
     | '/marketplace/$slug/pendencias'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/configuracoes'
+    | '/zpl-converter'
     | '/marketplace/$slug/historico'
     | '/marketplace/$slug/pendencias'
     | '/marketplace/$slug/processar'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/configuracoes'
+    | '/zpl-converter'
     | '/marketplace/$slug'
     | '/marketplace/$slug/historico'
     | '/marketplace/$slug/pendencias'
@@ -115,6 +127,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ZplConverterRoute: typeof ZplConverterRoute
   MarketplaceSlugRoute: typeof MarketplaceSlugRouteWithChildren
 }
 
@@ -132,6 +145,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/zpl-converter': {
+      id: '/zpl-converter'
+      path: '/zpl-converter'
+      fullPath: '/zpl-converter'
+      preLoaderRoute: typeof ZplConverterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/marketplace/$slug': {
@@ -193,6 +213,7 @@ const MarketplaceSlugRouteWithChildren = MarketplaceSlugRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  ZplConverterRoute: ZplConverterRoute,
   MarketplaceSlugRoute: MarketplaceSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport

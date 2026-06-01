@@ -44,6 +44,7 @@ Interface usada pela equipe para:
 - baixar PDF final;
 - baixar relatorio;
 - verificar pendencias.
+- converter arquivos ZPL/TXT em PDF multipagina local.
 
 Porta padrao:
 
@@ -144,6 +145,30 @@ Se o IP mudar, atualize a URL da API no frontend ou configure novamente pela tel
 7. Baixar o relatorio Excel/CSV.
 8. Conferir pendencias ou itens para revisar.
 
+## Conversor ZPL Para PDF
+
+O sistema tambem possui a tela `Conversor ZPL`, que recebe arquivos `.zpl` ou `.txt`, separa etiquetas por blocos `^XA ... ^XZ` e gera um PDF multipagina local, sem Labelary e sem servicos online.
+
+Padrao inicial:
+
+```text
+100x150mm, 203 DPI
+```
+
+Endpoint principal:
+
+```text
+POST /api/zpl/convert
+```
+
+O PDF final fica em:
+
+```text
+backend/output/zpl_converter/
+```
+
+Mais detalhes: [Conversor ZPL Para PDF](./docs/CONVERSOR_ZPL_PDF.md)
+
 ## Arquivos Gerados
 
 O backend gera arquivos em:
@@ -223,3 +248,4 @@ Verifique:
 
 - [Backend](./backend/README.md)
 - [Frontend](./frontend/README.md)
+- [Conversor ZPL Para PDF](./docs/CONVERSOR_ZPL_PDF.md)

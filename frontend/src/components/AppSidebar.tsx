@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Settings, PackageCheck } from "lucide-react";
+import { FileText, LayoutDashboard, PackageCheck, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -27,7 +27,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold text-sidebar-foreground">Conciliador</span>
-            <span className="text-[11px] text-sidebar-foreground/60">NF x Etiquetas</span>
+            <span className="text-[11px] text-sidebar-foreground/70">NF x Etiquetas</span>
           </div>
         </div>
       </SidebarHeader>
@@ -41,6 +41,14 @@ export function AppSidebar() {
                   <Link to="/" className="flex items-center gap-2">
                     <LayoutDashboard className="h-4 w-4" />
                     <span>Dashboard geral</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isExact("/zpl-converter")}>
+                  <Link to="/zpl-converter" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span>Conversor ZPL</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

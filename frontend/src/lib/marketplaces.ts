@@ -3,8 +3,6 @@ import {
   Package,
   Music2,
   Sparkles,
-  Store,
-  ShoppingCart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,8 +18,6 @@ export const MARKETPLACES: Marketplace[] = [
   { slug: "amazon", name: "Amazon", color: "bg-amber-600", icon: Package },
   { slug: "tiktok_shop", name: "TikTok Shop", color: "bg-zinc-900", icon: Music2 },
   { slug: "beleza_na_web", name: "Beleza na Web", color: "bg-pink-500", icon: Sparkles },
-  { slug: "magalu", name: "Magalu", color: "bg-blue-600", icon: Store },
-  { slug: "vtex", name: "VTEX", color: "bg-rose-600", icon: ShoppingCart },
 ];
 
 export function findMarketplace(slug: string): Marketplace | undefined {

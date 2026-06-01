@@ -4,7 +4,8 @@ import { historicoMock, resumoMock, conciliadosMock, etiquetasSemNfMock, nfsSemE
 import { MARKETPLACES } from "./marketplaces";
 
 const URL_KEY = "conciliador_api_url";
-const DEFAULT_API_URL = "http://192.168.15.2:8010";
+const ZPL_URL_KEY = "conciliador_zpl_api_url";
+const DEFAULT_API_URL = "http://localhost:8010";
 
 export function getApiUrl(): string {
   if (typeof window === "undefined") return DEFAULT_API_URL;
@@ -16,6 +17,16 @@ export function getApiUrl(): string {
 }
 export function setApiUrl(url: string) {
   localStorage.setItem(URL_KEY, url.trim());
+}
+
+export function getZplApiUrl(): string {
+  if (typeof window === "undefined") return DEFAULT_API_URL;
+  const savedUrl = localStorage.getItem(ZPL_URL_KEY)?.trim();
+  return savedUrl || getApiUrl();
+}
+
+export function setZplApiUrl(url: string) {
+  localStorage.setItem(ZPL_URL_KEY, url.trim());
 }
 
 export interface LoteTotals {
@@ -41,14 +52,34 @@ export interface LoteResponse {
   marketplace_slug: string;
   batch_name?: string;
   created_at?: string;
+  status?: string;
   totals: LoteTotals;
   views?: LoteViews;
   downloads?: Record<string, string | boolean>;
+  errors?: Record<string, string[]>;
 }
 
 export interface OpcoesProcessamento {
   marketplace: string;
   batchName?: string;
+}
+
+export interface ZplConvertOptions {
+  marketplace?: string;
+  batchName?: string;
+  widthMm: number;
+  heightMm: number;
+  dpi: number;
+}
+
+export interface ZplConvertResponse {
+  job_id: string;
+  status: "success" | "partial_success" | "failed";
+  total_labels: number;
+  converted_labels: number;
+  failed_labels: number;
+  pdf_url?: string | null;
+  warnings: string[];
 }
 
 const LOCAL_JOBS_KEY = "conciliador_local_jobs";
@@ -182,6 +213,33 @@ export function downloadUrls(jobId: string) {
   };
 }
 
+export async function converterZplParaPdf(file: File, opts: ZplConvertOptions): Promise<ZplConvertResponse> {
+  const base = getZplApiUrl();
+  if (!base) throw new Error("Configure a URL da API antes de converter ZPL.");
+
+  const fd = new FormData();
+  fd.append("file", file);
+  if (opts.marketplace) fd.append("marketplace", opts.marketplace);
+  if (opts.batchName) fd.append("batch_name", opts.batchName);
+  fd.append("width_mm", String(opts.widthMm));
+  fd.append("height_mm", String(opts.heightMm));
+  fd.append("dpi", String(opts.dpi));
+
+  const res = await fetch(`${base}/api/zpl/convert`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const payload = await res.json().catch(() => null);
+    const detail = payload?.detail;
+    if (typeof detail === "string") throw new Error(detail);
+    if (detail?.message) throw new Error(detail.message);
+    throw new Error(`Erro ${res.status} ao converter ZPL`);
+  }
+  return res.json();
+}
+
+export function zplDownloadUrl(jobId: string) {
+  return `${getZplApiUrl()}/api/zpl/${jobId}/pdf`;
+}
+
 export async function testarConexao(): Promise<{ ok: boolean; mensagem: string }> {
   const url = getApiUrl();
   if (!url) return { ok: false, mensagem: "Nenhuma URL configurada — usando modo demo." };
@@ -191,5 +249,19 @@ export async function testarConexao(): Promise<{ ok: boolean; mensagem: string }
     return { ok: false, mensagem: `Backend respondeu ${res.status}` };
   } catch (e) {
     return { ok: false, mensagem: `Não foi possível conectar em ${url}` };
+  }
+}
+
+export async function testarConexaoZpl(): Promise<{ ok: boolean; mensagem: string }> {
+  const url = getZplApiUrl();
+  if (!url) return { ok: false, mensagem: "Nenhuma URL configurada para o conversor ZPL." };
+  try {
+    const res = await fetch(`${url}/openapi.json`);
+    if (!res.ok) return { ok: false, mensagem: `API ZPL respondeu ${res.status}` };
+    const text = await res.text();
+    if (text.includes("/api/zpl/convert")) return { ok: true, mensagem: `Conversor ZPL conectado em ${url}` };
+    return { ok: false, mensagem: `API em ${url} nao tem a rota /api/zpl/convert` };
+  } catch {
+    return { ok: false, mensagem: `Nao foi possivel conectar na API ZPL em ${url}` };
   }
 }

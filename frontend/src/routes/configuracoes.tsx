@@ -2,12 +2,19 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Loader2, Plug } from "lucide-react";
 import { toast } from "sonner";
-import { getApiUrl, setApiUrl, testarConexao } from "@/lib/api";
+import {
+  getApiUrl,
+  getZplApiUrl,
+  setApiUrl,
+  setZplApiUrl,
+  testarConexao,
+  testarConexaoZpl,
+} from "@/lib/api";
 
 export const Route = createFileRoute("/configuracoes")({
   head: () => ({
     meta: [
-      { title: "Configurações · Conciliador NF-e x Etiquetas" },
+      { title: "Configurações - Conciliador NF-e x Etiquetas" },
       { name: "description", content: "Configurações de impressão, OCR e backend." },
     ],
   }),
@@ -23,11 +30,17 @@ function Configuracoes() {
   const [campoQtd, setCampoQtd] = useState(true);
   const [modoOcr, setModoOcr] = useState("automatico");
   const [debugOcr, setDebugOcr] = useState(false);
-  const [apiUrl, setApiUrlState] = useState("http://192.168.15.2:8010");
+  const [apiUrl, setApiUrlState] = useState("http://localhost:8010");
+  const [zplApiUrl, setZplApiUrlState] = useState("");
   const [testing, setTesting] = useState(false);
+  const [testingZpl, setTestingZpl] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
-    setApiUrlState(getApiUrl());
+    const mainUrl = getApiUrl();
+    const zplUrl = getZplApiUrl();
+    setApiUrlState(mainUrl);
+    setZplApiUrlState(zplUrl === mainUrl ? "" : zplUrl);
   }, []);
 
   const onTest = async () => {
@@ -39,8 +52,19 @@ function Configuracoes() {
     else toast.error("Sem conexão", { description: r.mensagem });
   };
 
+  const onTestZpl = async () => {
+    setApiUrl(apiUrl);
+    setZplApiUrl(zplApiUrl);
+    setTestingZpl(true);
+    const r = await testarConexaoZpl();
+    setTestingZpl(false);
+    if (r.ok) toast.success("Conversor ZPL conectado", { description: r.mensagem });
+    else toast.error("Sem conexão ZPL", { description: r.mensagem });
+  };
+
   const saveAll = () => {
     setApiUrl(apiUrl);
+    setZplApiUrl(zplApiUrl);
     toast.success("Configurações salvas");
   };
 
@@ -49,17 +73,17 @@ function Configuracoes() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Configurações</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ajuste impressão, OCR e a conexão com o backend FastAPI local.
+          Ajuste impressão, OCR e a conexão com as APIs FastAPI locais.
         </p>
       </div>
 
-      <Section title="Impressão" desc="Layout padrão dos PDFs gerados.">
+      <Section title="Configurações básicas" desc="Preferências mais usadas no dia a dia da operação.">
         <Grid>
           <Field label="Formato padrão">
             <select value={formato} onChange={(e) => setFormato(e.target.value)} className="sel">
-              <option value="a4_4">A4 — 4 por folha</option>
-              <option value="a4_2">A4 — 2 por folha</option>
-              <option value="termica_4x6">4x6 térmica</option>
+              <option value="a4_4">A4 - 4 por folha</option>
+              <option value="a4_2">A4 - 2 por folha</option>
+              <option value="termica_4x6">4x6 termica</option>
             </select>
           </Field>
           <Field label="Margem do PDF (mm)">
@@ -73,6 +97,13 @@ function Configuracoes() {
             />
           </Field>
           <Toggle label="Mostrar bloco de picking" checked={picking} onChange={setPicking} />
+          <Field label="Modo padrão">
+            <select value={modoOcr} onChange={(e) => setModoOcr(e.target.value)} className="sel">
+              <option value="rapido">Rápido</option>
+              <option value="automatico">Automático</option>
+              <option value="detalhado">Detalhado</option>
+            </select>
+          </Field>
         </Grid>
         <div className="mt-4 rounded-lg border bg-muted/30 p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -86,48 +117,74 @@ function Configuracoes() {
         </div>
       </Section>
 
-      <Section title="OCR" desc="Como o backend deve interpretar etiquetas em imagem.">
-        <Grid>
-          <Field label="Modo padrão">
-            <select value={modoOcr} onChange={(e) => setModoOcr(e.target.value)} className="sel">
-              <option value="rapido">Rápido</option>
-              <option value="automatico">Automático</option>
-              <option value="detalhado">Detalhado</option>
-            </select>
-          </Field>
-          <Toggle label="Mostrar debug OCR nos resultados" checked={debugOcr} onChange={setDebugOcr} />
-        </Grid>
-      </Section>
+      <section className="rounded-xl border bg-card p-5">
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((value) => !value)}
+          className="flex w-full items-center justify-between text-left"
+        >
+          <span>
+            <span className="block text-base font-semibold">Configurações avançadas</span>
+            <span className="text-xs text-muted-foreground">
+              URLs das APIs, testes de conexão e debug técnico.
+            </span>
+          </span>
+          <span className="rounded-md border px-3 py-1.5 text-xs font-medium">
+            {showAdvanced ? "Ocultar" : "Mostrar"}
+          </span>
+        </button>
 
-      <Section title="Backend" desc="URL da API FastAPI local executando o motor de conciliação.">
-        <Grid>
-          <Field label="URL da API local">
-            <input
-              value={apiUrl}
-              onChange={(e) => setApiUrlState(e.target.value)}
-              placeholder="http://localhost:8000"
-              className="sel"
-            />
-          </Field>
-          <div className="flex items-end">
-            <button
-              onClick={onTest}
-              disabled={testing}
-              className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
-            >
-              {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plug className="h-4 w-4" />}
-              Testar conexão
-            </button>
+        {showAdvanced && (
+          <div className="mt-5 space-y-4">
+            <Grid>
+              <Field label="URL da API principal">
+                <input
+                  value={apiUrl}
+                  onChange={(e) => setApiUrlState(e.target.value)}
+                  placeholder="http://localhost:8010"
+                  className="sel"
+                />
+              </Field>
+              <div className="flex items-end">
+                <button
+                  onClick={onTest}
+                  disabled={testing}
+                  className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
+                >
+                  {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plug className="h-4 w-4" />}
+                  Testar conexão
+                </button>
+              </div>
+              <Field label="URL da API do Conversor ZPL (opcional)">
+                <input
+                  value={zplApiUrl}
+                  onChange={(e) => setZplApiUrlState(e.target.value)}
+                  placeholder="Em branco = usar API principal"
+                  className="sel"
+                />
+              </Field>
+              <div className="flex items-end">
+                <button
+                  onClick={onTestZpl}
+                  disabled={testingZpl}
+                  className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
+                >
+                  {testingZpl ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plug className="h-4 w-4" />}
+                  Testar API ZPL
+                </button>
+              </div>
+              <Toggle label="Mostrar debug OCR nos resultados" checked={debugOcr} onChange={setDebugOcr} />
+            </Grid>
           </div>
-        </Grid>
-      </Section>
+        )}
+      </section>
 
       <div className="flex justify-end">
         <button
           onClick={saveAll}
           className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
-          Salvar configurações
+          Salvar configuracoes
         </button>
       </div>
 
@@ -157,9 +214,11 @@ function Section({ title, desc, children }: { title: string; desc?: string; chil
     </section>
   );
 }
+
 function Grid({ children }: { children: React.ReactNode }) {
   return <div className="grid gap-4 md:grid-cols-2">{children}</div>;
 }
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
@@ -168,6 +227,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </label>
   );
 }
+
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className="flex cursor-pointer items-center justify-between rounded-md border bg-background px-3 py-2.5">
@@ -182,6 +242,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
     </label>
   );
 }
+
 function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className="flex cursor-pointer items-center gap-2 text-sm">

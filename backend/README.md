@@ -17,6 +17,7 @@ Este modulo executa o processamento principal do sistema: leitura de arquivos, O
 - Gerar PDF final de impressao.
 - Gerar PDFs individuais, quando disponivel.
 - Gerar relatorios CSV/Excel.
+- Converter arquivos ZPL/TXT em PDF multipagina local.
 - Salvar resultados em `output/`.
 
 ## Arquivos Aceitos
@@ -115,6 +116,16 @@ GET /api/lotes/{job_id}/arquivos/relatorio_excel
 GET /api/lotes/{job_id}/arquivos/zip_individuais
 ```
 
+Conversor ZPL para PDF:
+
+```text
+POST /api/zpl/convert
+GET /api/zpl/{job_id}/pdf
+GET /api/zpl/{job_id}/relatorio
+```
+
+O endpoint aceita arquivos `.zpl` ou `.txt`, separa as etiquetas por blocos `^XA ... ^XZ` e gera um PDF local em `output/zpl_converter/`.
+
 ## Saidas
 
 Arquivos gerados ficam em:
@@ -164,3 +175,9 @@ Pode ocorrer com PDFs comprimidos, imagens pequenas, texto perto de codigo de ba
 ### Porta 8010 em uso
 
 Feche o processo antigo ou escolha outra porta. Se mudar a porta, atualize tambem o frontend.
+
+## Conversor ZPL Para PDF
+
+O modulo `services/zpl_converter/` converte lotes ZPL localmente, sem Labelary. A primeira versao renderiza textos, linhas/caixas e Code 128. Comandos graficos como `^GF`, imagens externas e alguns codigos 2D tem suporte limitado e aparecem como avisos no relatorio.
+
+Documentacao completa: `docs/CONVERSOR_ZPL_PDF.md`.

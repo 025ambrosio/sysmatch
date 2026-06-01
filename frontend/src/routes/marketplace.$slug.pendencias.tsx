@@ -17,10 +17,10 @@ function Pendencias() {
 
   useEffect(() => {
     setLoading(true);
-    listarLotes(m.name).then(async (l) => {
-      setLotes(l);
-      if (l[0]) {
-        const detail = (await getLote(l[0].job_id)) ?? l[0];
+    listarLotes(m.name).then(async (lista) => {
+      setLotes(lista);
+      if (lista[0]) {
+        const detail = (await getLote(lista[0].job_id)) ?? lista[0];
         setSelecionado(detail);
       }
       setLoading(false);
@@ -36,7 +36,7 @@ function Pendencias() {
     <div className="mx-auto w-full max-w-7xl space-y-6 p-6 lg:p-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Verificar pendências — {m.name}</h2>
+          <h2 className="text-lg font-semibold">Verificar pendências - {m.name}</h2>
           <p className="text-sm text-muted-foreground">
             Revise conciliados, etiquetas sem NF, NFs sem etiqueta e itens para revisar.
           </p>
@@ -47,9 +47,9 @@ function Pendencias() {
             onChange={(e) => onSelect(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 text-sm"
           >
-            {lotes.map((l) => (
-              <option key={l.job_id} value={l.job_id}>
-                {l.batch_name ?? l.job_id}
+            {lotes.map((lote) => (
+              <option key={lote.job_id} value={lote.job_id}>
+                {lote.batch_name ?? lote.job_id}
               </option>
             ))}
           </select>
@@ -58,7 +58,7 @@ function Pendencias() {
 
       {loading && (
         <div className="rounded-xl border bg-card p-10 text-center text-sm text-muted-foreground">
-          Carregando…
+          Carregando...
         </div>
       )}
 

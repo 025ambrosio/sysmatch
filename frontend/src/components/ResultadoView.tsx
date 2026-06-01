@@ -1,10 +1,13 @@
-import { FileDown, FileSpreadsheet, Archive } from "lucide-react";
+import { AlertTriangle, Archive, FileDown, FileSpreadsheet, RotateCcw } from "lucide-react";
 import { MetricCard } from "@/components/MetricCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { downloadUrls, type LoteResponse } from "@/lib/api";
+import { getLoteStatus, loteStatusClass, loteStatusLabel, totalPendencias } from "@/lib/loteStatus";
 
-export function ResultadoView({ lote }: { lote: LoteResponse }) {
+export function ResultadoView({ lote, onNewBatch }: { lote: LoteResponse; onNewBatch?: () => void }) {
   const t = lote.totals;
+  const pendencias = totalPendencias(lote);
+  const status = getLoteStatus(lote);
   const urls = downloadUrls(lote.job_id);
   const hasDownload = (key: string) => {
     const value = lote.downloads?.[key];
@@ -22,23 +25,49 @@ export function ResultadoView({ lote }: { lote: LoteResponse }) {
       <div className="rounded-xl border bg-card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-base font-semibold">
-              {lote.batch_name || "Lote processado"} - {lote.marketplace}
-            </h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base font-semibold">
+                {pendencias > 0 ? "Processamento concluído com pendências" : "Processamento concluído com sucesso"}
+              </h3>
+              <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${loteStatusClass(status)}`}>
+                {loteStatusLabel(status)}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t.notas_lidas} nota(s) fiscal(is) lida(s), {t.etiquetas_lidas} etiqueta(s) lida(s),
+              {" "}{t.conciliadas} conciliada(s) e {pendencias} pendência(s).
+            </p>
+            {pendencias > 0 && (
+              <p className="mt-2 inline-flex items-center gap-2 rounded-md bg-warning/15 px-3 py-2 text-sm font-medium text-warning-foreground">
+                <AlertTriangle className="h-4 w-4" />
+                Existem etiquetas sem NF ou NFs sem etiqueta. Revise antes de imprimir.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
+              {lote.batch_name || "Lote processado"} - {lote.marketplace} ·{" "}
               ID: <code className="rounded bg-muted px-1.5 py-0.5">{lote.job_id}</code>
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {hasDownload("pdf_final") && (
               <DownloadBtn href={urls.pdfFinal} icon={<FileDown className="h-4 w-4" />}>
-                Baixar etiqueta consolidada (PDF)
+                Baixar PDF consolidado
               </DownloadBtn>
             )}
             {hasDownload("relatorio_excel") && (
               <DownloadBtn href={urls.excel} icon={<FileSpreadsheet className="h-4 w-4" />} variant="outline">
-                Baixar relatorio Excel
+                Baixar relatório Excel
               </DownloadBtn>
+            )}
+            {onNewBatch && (
+              <button
+                type="button"
+                onClick={onNewBatch}
+                className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3.5 py-2 text-sm font-medium hover:bg-muted"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Iniciar novo lote
+              </button>
             )}
             {hasDownload("zip_individuais") && (
               <DownloadBtn href={urls.zipIndividuais} icon={<Archive className="h-4 w-4" />} variant="outline">
@@ -60,7 +89,7 @@ export function ResultadoView({ lote }: { lote: LoteResponse }) {
 
       <section className="rounded-xl border bg-card">
         <header className="border-b px-5 py-4">
-          <h3 className="text-base font-semibold">Verificar pendencias</h3>
+          <h3 className="text-base font-semibold">Verificar pendências</h3>
           <p className="text-xs text-muted-foreground">
             Detalhamento dos itens conciliados e pendentes deste lote.
           </p>

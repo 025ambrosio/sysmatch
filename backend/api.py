@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import os
 import tempfile
 
@@ -8,18 +9,19 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from services.zpl_converter import convert_zpl_batch
+from services.zpl_converter.pdf_builder import public_response
 from src.pipeline import ProcessingOptions, list_manifests, process_batch, read_manifest, safe_filename, to_jsonable
 
 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output"
+ZPL_OUTPUT_DIR = OUTPUT_DIR / "zpl_converter"
 MARKETPLACES = [
     {"id": "shopee", "name": "Shopee"},
     {"id": "amazon", "name": "Amazon"},
     {"id": "tiktok_shop", "name": "TikTok Shop"},
     {"id": "beleza_na_web", "name": "Beleza na Web"},
-    {"id": "magalu", "name": "Magalu"},
-    {"id": "vtex", "name": "VTEX"},
 ]
 
 
@@ -51,6 +53,14 @@ def health() -> dict:
 @app.get("/api/marketplaces")
 def listar_marketplaces() -> dict:
     return {"marketplaces": MARKETPLACES}
+
+
+def _zpl_job_dir(job_id: str) -> Path:
+    return ZPL_OUTPUT_DIR / safe_filename(job_id)
+
+
+def _zpl_report_path(job_id: str) -> Path:
+    return _zpl_job_dir(job_id) / "relatorio.json"
 
 
 async def _save_uploads(files: list[UploadFile], target_dir: Path) -> list[Path]:
@@ -114,6 +124,79 @@ async def processar_lote(
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     return to_jsonable(result)
+
+
+@app.post("/api/zpl/convert")
+async def converter_zpl_pdf(
+    file: UploadFile = File(..., description="Arquivo .zpl ou .txt com uma ou mais etiquetas ZPL"),
+    marketplace: str = Form(""),
+    width_mm: float = Form(100),
+    height_mm: float = Form(150),
+    dpi: int = Form(203),
+    batch_name: str = Form(""),
+) -> dict:
+    filename = file.filename or "etiquetas.zpl"
+    suffix = Path(filename).suffix.lower()
+    if suffix not in {".zpl", ".txt"}:
+        raise HTTPException(status_code=400, detail="Envie um arquivo .zpl ou .txt.")
+    if width_mm <= 0 or height_mm <= 0:
+        raise HTTPException(status_code=400, detail="Largura e altura da etiqueta devem ser maiores que zero.")
+    if dpi <= 0:
+        raise HTTPException(status_code=400, detail="DPI deve ser maior que zero.")
+
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
+    try:
+        content = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        content = raw.decode("latin-1", errors="replace")
+
+    report = convert_zpl_batch(
+        content=content,
+        output_root=OUTPUT_DIR,
+        original_filename=filename,
+        marketplace=marketplace,
+        width_mm=width_mm,
+        height_mm=height_mm,
+        dpi=dpi,
+        batch_name=batch_name,
+    )
+    if report.total_labels == 0:
+        raise HTTPException(status_code=400, detail="Arquivo sem blocos ZPL validos no formato ^XA ... ^XZ.")
+    if report.converted_labels == 0:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": "Nenhuma etiqueta pode ser convertida com os comandos suportados.",
+                "warnings": report.warnings,
+                "errors": [error.model_dump() for error in report.errors],
+            },
+        )
+    return public_response(report).model_dump()
+
+
+@app.get("/api/zpl/{job_id}/pdf")
+def baixar_pdf_zpl(job_id: str):
+    report_path = _zpl_report_path(job_id)
+    if not report_path.exists():
+        raise HTTPException(status_code=404, detail=f"Conversao ZPL nao encontrada: {job_id}")
+    report = to_jsonable(json.loads(report_path.read_text(encoding="utf-8")))
+    pdf_value = report.get("output_pdf")
+    if not pdf_value:
+        raise HTTPException(status_code=404, detail="PDF nao disponivel para esta conversao.")
+    path = Path(pdf_value)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Arquivo PDF nao encontrado.")
+    return FileResponse(path, filename=path.name, media_type="application/pdf")
+
+
+@app.get("/api/zpl/{job_id}/relatorio")
+def relatorio_zpl(job_id: str) -> dict:
+    report_path = _zpl_report_path(job_id)
+    if not report_path.exists():
+        raise HTTPException(status_code=404, detail=f"Conversao ZPL nao encontrada: {job_id}")
+    return to_jsonable(json.loads(report_path.read_text(encoding="utf-8")))
 
 
 @app.get("/api/lotes")

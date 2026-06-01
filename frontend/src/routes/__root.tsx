@@ -10,9 +10,9 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Pagina nao encontrada</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          A pagina que voce procura nao existe ou foi movida.
+          A página que você procura não existe ou foi movida.
         </p>
         <div className="mt-6">
           <Link
@@ -34,7 +34,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight">Erro ao carregar a pagina</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Erro ao carregar a página</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Algo deu errado. Tente novamente ou volte ao inicio.
         </p>
@@ -80,7 +80,7 @@ function RootComponent() {
               <div className="flex flex-col leading-tight">
                 <span className="text-sm font-semibold">Conciliador NF-e x Etiquetas</span>
                 <span className="text-[11px] text-muted-foreground">
-                  Operacao interna - Logistica
+                  Operação interna - Logística
                 </span>
               </div>
               <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
