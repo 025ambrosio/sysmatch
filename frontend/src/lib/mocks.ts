@@ -1,0 +1,195 @@
+// Mock data for Conciliador NF-e x Etiquetas
+
+export const resumoMock = {
+  nfsLidas: 52,
+  etiquetasLidas: 55,
+  conciliadas: 48,
+  paraRevisar: 2,
+  etiquetasSemNf: 5,
+  nfsSemEtiqueta: 4,
+  taxaConciliacao: 92,
+};
+
+export const conciliadosMock = [
+  {
+    nf: "242088",
+    cliente: "Aline Benitez Romero",
+    cep: "87555-000",
+    cidadeUf: "São Jorge do Patrocínio/PR",
+    pedidoShopee: "26052353GBRMEP",
+    rastreio: "BR2645432006706",
+    arquivoNf: "nfs_lote_001.pdf",
+    paginaNf: 12,
+    arquivoEtiqueta: "etiquetas_shopee.pdf",
+    paginaEtiqueta: 18,
+    confianca: 100,
+    motivo: "Chave NF-e contém mesma NF e mesmo CNPJ emitente",
+  },
+  {
+    nf: "242089",
+    cliente: "Carlos Eduardo Silva",
+    cep: "01310-100",
+    cidadeUf: "São Paulo/SP",
+    pedidoShopee: "26052354HXKLMP",
+    rastreio: "BR2645432006707",
+    arquivoNf: "nfs_lote_001.pdf",
+    paginaNf: 13,
+    arquivoEtiqueta: "etiquetas_shopee.pdf",
+    paginaEtiqueta: 19,
+    confianca: 98,
+    motivo: "Match por chave NF-e + CEP",
+  },
+  {
+    nf: "242090",
+    cliente: "Maria Joana Pereira",
+    cep: "30130-100",
+    cidadeUf: "Belo Horizonte/MG",
+    pedidoShopee: "26052355ABCDEF",
+    rastreio: "BR2645432006708",
+    arquivoNf: "nfs_lote_001.pdf",
+    paginaNf: 14,
+    arquivoEtiqueta: "etiquetas_shopee.pdf",
+    paginaEtiqueta: 20,
+    confianca: 100,
+    motivo: "Chave NF-e contém mesma NF e mesmo CNPJ emitente",
+  },
+  {
+    nf: "242091",
+    cliente: "Roberto Almeida Costa",
+    cep: "20040-020",
+    cidadeUf: "Rio de Janeiro/RJ",
+    pedidoShopee: "26052356GHIJKL",
+    rastreio: "BR2645432006709",
+    arquivoNf: "nfs_lote_001.pdf",
+    paginaNf: 15,
+    arquivoEtiqueta: "etiquetas_shopee.pdf",
+    paginaEtiqueta: 21,
+    confianca: 95,
+    motivo: "Match por cliente + CEP",
+  },
+];
+
+export const etiquetasSemNfMock = [
+  {
+    arquivoEtiqueta: "etiquetas_shopee.pdf",
+    paginaEtiqueta: 32,
+    nfEncontrada: "-",
+    chaveNfe: "-",
+    cliente: "Fernanda Lima",
+    cep: "04567-010",
+    cidadeUf: "São Paulo/SP",
+    pedidoShopee: "26052370XYZABC",
+    rastreio: "BR2645432006720",
+    motivo: "Nenhuma NF correspondente encontrada",
+  },
+  {
+    arquivoEtiqueta: "etiquetas_shopee.pdf",
+    paginaEtiqueta: 33,
+    nfEncontrada: "242100",
+    chaveNfe: "3525...",
+    cliente: "João Vitor Santos",
+    cep: "60160-230",
+    cidadeUf: "Fortaleza/CE",
+    pedidoShopee: "26052371DEFGHI",
+    rastreio: "BR2645432006721",
+    motivo: "NF da etiqueta não está no lote enviado",
+  },
+];
+
+export const nfsSemEtiquetaMock = [
+  {
+    nf: "242120",
+    chaveNfe: "35250612345678000199550010002421201234567890",
+    cliente: "Patricia Souza Mendes",
+    cep: "13560-450",
+    cidadeUf: "São Carlos/SP",
+    arquivoNf: "nfs_lote_001.pdf",
+    paginaNf: 45,
+    valorTotal: "R$ 187,50",
+    motivo: "Nenhuma etiqueta correspondente",
+  },
+  {
+    nf: "242121",
+    chaveNfe: "35250612345678000199550010002421211234567891",
+    cliente: "Lucas Oliveira",
+    cep: "80010-130",
+    cidadeUf: "Curitiba/PR",
+    arquivoNf: "nfs_lote_001.pdf",
+    paginaNf: 46,
+    valorTotal: "R$ 92,40",
+    motivo: "Nenhuma etiqueta correspondente",
+  },
+];
+
+export const revisarMock = [
+  {
+    nf: "242130",
+    cliente: "Ana Beatriz Castro",
+    etiquetaCandidata: "etiquetas_shopee.pdf — pág. 50",
+    confianca: 62,
+    motivos: "CEP confere, mas nome diverge",
+    dadosEncontrados: "CEP: 22070-001 / Pedido: 2605238...",
+    textoOcrResumido: "Destinatario ANA B. C. — Rua Barata Ribeiro 200...",
+  },
+];
+
+export const debugOcrMock = [
+  {
+    arquivo: "etiquetas_shopee.pdf",
+    pagina: 18,
+    textoOcr:
+      "DESTINATARIO: ALINE BENITEZ ROMERO\nRUA DAS FLORES 123\nSAO JORGE DO PATROCINIO/PR\nCEP 87555-000\nPEDIDO 26052353GBRMEP\nRASTREIO BR2645432006706",
+    nfEncontrada: "242088",
+    chaveEncontrada: "35250612345678000199550010002420881234567890",
+    cepEncontrado: "87555-000",
+    rastreioEncontrado: "BR2645432006706",
+    pedidoEncontrado: "26052353GBRMEP",
+  },
+  {
+    arquivo: "etiquetas_shopee.pdf",
+    pagina: 19,
+    textoOcr:
+      "DESTINATARIO: CARLOS EDUARDO SILVA\nAV PAULISTA 1000\nSAO PAULO/SP\nCEP 01310-100",
+    nfEncontrada: "242089",
+    chaveEncontrada: "35250612345678000199550010002420891234567891",
+    cepEncontrado: "01310-100",
+    rastreioEncontrado: "BR2645432006707",
+    pedidoEncontrado: "26052354HXKLMP",
+  },
+];
+
+export const historicoMock = [
+  {
+    id: "lote_2026_05_23_001",
+    dataHora: "23/05/2026 14:32",
+    nome: "Lote manhã - Shopee",
+    nfs: 52,
+    etiquetas: 55,
+    conciliadas: 48,
+    pendentes: 4,
+    usuario: "operador1",
+    status: "Finalizado",
+  },
+  {
+    id: "lote_2026_05_23_002",
+    dataHora: "23/05/2026 11:08",
+    nome: "Reprocessamento",
+    nfs: 18,
+    etiquetas: 18,
+    conciliadas: 18,
+    pendentes: 0,
+    usuario: "operador2",
+    status: "Finalizado",
+  },
+  {
+    id: "lote_2026_05_22_003",
+    dataHora: "22/05/2026 17:45",
+    nome: "Lote tarde",
+    nfs: 73,
+    etiquetas: 71,
+    conciliadas: 68,
+    pendentes: 5,
+    usuario: "operador1",
+    status: "Finalizado",
+  },
+];

@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
+.tanstack/
+.output/
+.vinxi/
+.nitro/
+
+# Logs and local files
+*.log
+*.local
+.env
+.env.*
+!.env.example
+
+# Generated output and uploaded files
+output/
+ecommerce_nf_matcher/
+nf_label_matcher_frontend/
+backend/output/*
+!backend/output/conciliados/
+!backend/output/revisar/
+!backend/output/pendentes/
+!backend/output/relatorios/
+!backend/output/api_jobs/
+!backend/output/conciliados/.gitkeep
+!backend/output/revisar/.gitkeep
+!backend/output/pendentes/.gitkeep
+!backend/output/relatorios/.gitkeep
+!backend/output/api_jobs/.gitkeep
+
+# Archives/debug exports
+*.rar
+*.zip
+output_front_api_ts.txt
+
+# Editor/system
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db

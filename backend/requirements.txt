@@ -1,0 +1,12 @@
+pandas>=2.2
+openpyxl>=3.1
+lxml>=5.2
+rapidfuzz>=3.9
+Pillow>=10.3
+PyMuPDF>=1.24
+pytesseract>=0.3.10
+reportlab>=4.2
+requests>=2.32
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
