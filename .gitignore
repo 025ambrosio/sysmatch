@@ -19,6 +19,7 @@ dist-ssr/
 # Logs and local files
 *.log
 *.local
+.runtime/
 .env
 .env.*
 !.env.example
