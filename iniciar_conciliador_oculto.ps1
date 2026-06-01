@@ -6,8 +6,8 @@ $frontendDir = Join-Path $rootDir "frontend"
 $pidDir = Join-Path $rootDir ".runtime"
 $backendPid = Join-Path $pidDir "backend.pid"
 $frontendPid = Join-Path $pidDir "frontend.pid"
-$backendScript = Join-Path $rootDir "iniciar_backend_conciliador.bat"
-$frontendScript = Join-Path $rootDir "iniciar_frontend_conciliador.bat"
+$backendLog = Join-Path $pidDir "backend.log"
+$frontendLog = Join-Path $pidDir "frontend.log"
 
 function Stop-WithMessage {
     param([string] $Message)
@@ -34,11 +34,46 @@ if (-not (Test-Path (Join-Path $frontendDir "node_modules") -PathType Container)
 
 New-Item -ItemType Directory -Path $pidDir -Force | Out-Null
 
-$backendArgs = '/c "{0}"' -f $backendScript
-$frontendArgs = '/c "{0}"' -f $frontendScript
+$backendPython = Join-Path $backendDir ".venv\Scripts\python.exe"
+$npmCmd = "npm.cmd"
 
-$backend = Start-Process -FilePath "cmd.exe" -ArgumentList $backendArgs -WindowStyle Hidden -PassThru
-$frontend = Start-Process -FilePath "cmd.exe" -ArgumentList $frontendArgs -WindowStyle Hidden -PassThru
+if (-not (Test-Path $backendPython -PathType Leaf)) {
+    Stop-WithMessage "Python do ambiente virtual nao foi encontrado em backend\.venv\Scripts\python.exe."
+}
+
+if (-not (Test-Path (Join-Path $frontendDir "dist\index.html") -PathType Leaf)) {
+    $build = Start-Process `
+        -FilePath $npmCmd `
+        -ArgumentList @("run", "build") `
+        -WorkingDirectory $frontendDir `
+        -WindowStyle Hidden `
+        -Wait `
+        -PassThru `
+        -RedirectStandardOutput (Join-Path $pidDir "frontend-build.log") `
+        -RedirectStandardError (Join-Path $pidDir "frontend-build.err.log")
+
+    if ($build.ExitCode -ne 0) {
+        Stop-WithMessage "Nao foi possivel gerar o build do frontend. Verifique .runtime\frontend-build.err.log."
+    }
+}
+
+$backend = Start-Process `
+    -FilePath $backendPython `
+    -ArgumentList @("-m", "uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8010") `
+    -WorkingDirectory $backendDir `
+    -WindowStyle Hidden `
+    -PassThru `
+    -RedirectStandardOutput $backendLog `
+    -RedirectStandardError (Join-Path $pidDir "backend.err.log")
+
+$frontend = Start-Process `
+    -FilePath $npmCmd `
+    -ArgumentList @("run", "preview", "--", "--host", "0.0.0.0", "--port", "8080") `
+    -WorkingDirectory $frontendDir `
+    -WindowStyle Hidden `
+    -PassThru `
+    -RedirectStandardOutput $frontendLog `
+    -RedirectStandardError (Join-Path $pidDir "frontend.err.log")
 
 Set-Content -Path $backendPid -Value $backend.Id
 Set-Content -Path $frontendPid -Value $frontend.Id

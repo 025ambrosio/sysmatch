@@ -10,6 +10,7 @@ echo ============================================================
 echo.
 
 call :check_url "Backend" "http://localhost:8010/api/health"
+call :check_openapi_route "Conversor ZPL" "http://localhost:8010/openapi.json" "/api/zpl/convert"
 call :check_url "Frontend" "http://localhost:8080"
 
 echo.
@@ -30,6 +31,20 @@ if errorlevel 1 (
     echo [FALHA] %LABEL% nao respondeu.
 ) else (
     echo [OK] %LABEL% esta respondendo.
+)
+echo.
+exit /b 0
+
+:check_openapi_route
+set "LABEL=%~1"
+set "URL=%~2"
+set "ROUTE=%~3"
+echo [INFO] Verificando %LABEL% em %ROUTE%...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $r = Invoke-WebRequest -Uri '%URL%' -UseBasicParsing -TimeoutSec 5; if ($r.Content -like '*%ROUTE%*') { exit 0 } else { exit 1 } } catch { exit 1 }"
+if errorlevel 1 (
+    echo [FALHA] %LABEL% nao esta ativo no backend atual.
+) else (
+    echo [OK] %LABEL% esta ativo.
 )
 echo.
 exit /b 0

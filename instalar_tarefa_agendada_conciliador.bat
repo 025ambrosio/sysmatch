@@ -43,6 +43,12 @@ if errorlevel 1 (
     exit /b 1
 )
 
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries; Set-ScheduledTask -TaskName '%TASK_NAME%' -Settings $settings | Out-Null"
+if errorlevel 1 (
+    echo [AVISO] A tarefa foi criada, mas nao foi possivel ajustar as opcoes de energia.
+    echo Se estiver em notebook, confira no Agendador de Tarefas se ela pode iniciar usando bateria.
+)
+
 echo.
 echo [OK] Tarefa agendada criada com sucesso.
 echo.
